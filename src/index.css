@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@tailwind utilities;
+
+/* @layer components {
+  .dis-flex {
+    @apply flex items-center;
+  }
+  .dis-flex-col {
+    @apply flex items-center justify-center flex-col;
+  }
+} */
+
+@theme {
+  --color-blue: #3354f4;
+  --color-primary-blue: #1348fc;
+  --color-dark-blue: #101e39;
+  --color-glass-black: #0000007d;
+  --color-primary: #080808;
+  --color-text-grey: #838383;
+  --color-button: #1f1f1f;
+  --color-background-grey: #1d1e21;
+}
+h1,
+p,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  cursor: default;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background-color: black;
+  color: white;
+  height: 100%;
+  /* color: #030303; */
+}
+
+@keyframes border-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 200%;
+  }
+}
+
+.animate-border-flow {
+  background-size: 200% 200%;
+  animation: border-flow 6s linear infinite;
+}
