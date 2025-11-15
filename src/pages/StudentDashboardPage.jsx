@@ -11,11 +11,6 @@ const StudentDashboardPage = () => {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
-        <StudentDashboardLayout />
-      </div>
-
-      {/* MOBILE VIEW */}
-      <div className="md:hidden">
         <StudentDashboardLayout
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         />
