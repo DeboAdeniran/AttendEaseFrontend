@@ -1,10 +1,7 @@
 import React from "react";
 import { User, ChevronDown, Bell, Search } from "lucide-react";
-import DashStatus from "../../assets/close.svg?react";
 import Logo from "../../assets/dashLogo.svg?react";
-import Dashboard from "../../assets/dashboard.svg?react";
-import Person from "../../assets/student.svg?react";
-import Horiz from "../../assets/horiz.svg?react";
+import Dashboard from "../../assets/Dashboard.svg?react";
 const DashboardNavbar = ({
   userName = "Dr. Adesyo",
   userEmail = "adeyoola@stock.edu.staff",
