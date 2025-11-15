@@ -9,7 +9,7 @@ import Guard from "../../assets/guard.svg?react";
 import Class from "../../assets/class.svg?react";
 import Person from "../../assets/student.svg?react";
 import Attendance from "../../assets/attendance.svg?react";
-import Demarcation from "../../assets/Demarcation.svg?react";
+import Demarcation from "../../assets/demarcation.svg?react";
 import Analysis from "../../assets/analysis.svg?react";
 import { Link, useSearchParams, useLocation } from "react-router-dom";
 
