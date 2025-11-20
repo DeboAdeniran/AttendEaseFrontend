@@ -54,7 +54,7 @@ const RealTimeDisplay = () => {
   const courseOptions = lecturerCourses?.data || [];
 
   return (
-    <div className="bg-background-grey p-6 gap-24 flex flex-col rounded-md w-full md:w-72">
+    <div className="bg-background-grey p-6 gap-24 flex flex-col rounded-md w-full lg:w-72">
       <div className="flex items-end gap-4">
         <Sun />
         <div>
@@ -126,6 +126,7 @@ const RealTimeDisplay = () => {
     </div>
   );
 };
+
 const OverViewDetailsCard = ({ stats }) => {
   const overviewData = [
     {
@@ -176,7 +177,7 @@ const OverViewDetailsCard = ({ stats }) => {
       {overviewData.map((data, index) => (
         <div
           key={index}
-          className="bg-background-grey p-6 rounded-md w-full md:w-72 flex flex-col gap-2"
+          className="bg-background-grey p-6 rounded-md w-full md:w-60 lg:w-72 flex flex-col gap-2"
         >
           <p className="text-3xl font-bold">{data.value}</p>
           <p className="text-sm">{data.title}</p>
@@ -368,6 +369,7 @@ const DashboardAttendanceOverview = () => {
     </div>
   );
 };
+
 const AttendanceTable = ({ classes = [] }) => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
@@ -562,8 +564,10 @@ const AttendanceTable = ({ classes = [] }) => {
 
   return (
     <div className="bg-background-grey p-6 rounded-md min-h-screen border border-text-grey">
-      <div className="flex flex-col md:flex-row justify-center md:items-center gap-4 md:gap-10 py-6">
-        <p className="w-auto shrink-0 text-xl">Attendance Management</p>
+      <div className="flex flex-col lg:flex-row justify-between md:items-center gap-4 md:gap-10 py-6">
+        <p className="w-auto shrink-0 text-start text-xl">
+          Attendance Management
+        </p>
 
         {/* Search */}
         <div className="w-full h-full rounded-md border border-text-grey flex py-3 px-4">
@@ -574,9 +578,8 @@ const AttendanceTable = ({ classes = [] }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
         {/* Class Selector */}
-        <div className="relative w-auto shrink-0 min-w-[200px]">
+        <div className=" not-lg:hidden relative w-auto shrink-0 min-w-[200px]">
           <button
             onClick={() => setIsClassDropdownOpen(!isClassDropdownOpen)}
             disabled={classOptions.length === 0}
@@ -612,7 +615,7 @@ const AttendanceTable = ({ classes = [] }) => {
         </div>
 
         {/* Date Selector */}
-        <div className="flex items-center gap-2">
+        <div className=" not-lg:hidden flex items-center gap-2">
           <label className="text-sm text-text-grey">Date:</label>
           <input
             type="date"
@@ -623,7 +626,7 @@ const AttendanceTable = ({ classes = [] }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 w-auto shrink-0">
+        <div className="flex not-lg:hidden  gap-2 w-auto  shrink-0">
           <button
             onClick={markAllPresent}
             disabled={!selectedClass || isLoadingStudents}
@@ -651,8 +654,85 @@ const AttendanceTable = ({ classes = [] }) => {
             )}
           </button>
         </div>
-      </div>
+        <div className="flex lg:hidden w-full flex-wrap lg:flex-nowrap lg:flex-row items-center justify-between gap-2">
+          {/* Class Selector */}
+          <div className="relative w-auto shrink-0 min-w-[200px]">
+            <button
+              onClick={() => setIsClassDropdownOpen(!isClassDropdownOpen)}
+              disabled={classOptions.length === 0}
+              className="w-full bg-blue text-xs p-2 rounded-md flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {selectedClass ? selectedClass.label : "Select Class"}
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  isClassDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
+            {isClassDropdownOpen && classOptions.length > 0 && (
+              <div className="absolute top-full mt-1 w-full bg-background-grey border border-gray-700 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                {classOptions.map((cls) => (
+                  <button
+                    key={cls.id}
+                    onClick={() => {
+                      setSelectedClass(cls);
+                      setIsClassDropdownOpen(false);
+                      setHasUnsavedChanges(false);
+                    }}
+                    className={`w-full text-left text-xs p-2 hover:bg-gray-700 transition-colors ${
+                      selectedClass?.id === cls.id ? "bg-blue" : ""
+                    }`}
+                  >
+                    {cls.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Date Selector */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-text-grey">Date:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-bg-secondary text-secondary-white p-2 rounded-md border border-text-grey"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 w-auto  shrink-0">
+            <button
+              onClick={markAllPresent}
+              disabled={!selectedClass || isLoadingStudents}
+              className="w-auto shrink-0 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Mark All Present
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              disabled={!hasUnsavedChanges || isSubmitting || !selectedClass}
+              className={`py-2 px-6 rounded-md text-sm transition-colors ${
+                hasUnsavedChanges && !isSubmitting && selectedClass
+                  ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                  : "bg-gray-600 text-gray-300 cursor-not-allowed"
+              }`}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <LoadingSpinner />
+                  Submitting...
+                </span>
+              ) : (
+                "Submit Attendance"
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
       {/* Error Display */}
       {error && (
         <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-md">

@@ -22,11 +22,11 @@ const DashboardNavbar = ({ userAvatar, onMenuToggle }) => {
     >
       <div className="flex items-center justify-between px-4 md:px-6 py-4">
         {/* Left: Menu Button (Mobile) + Dashboard Title */}
-        <div className="flex items-center gap-3 md:gap-2">
+        <div className="flex items-center gap-3 lg:gap-2">
           {/* Mobile Menu Button */}
           <button
             onClick={onMenuToggle}
-            className="md:hidden p-2 rounded-lg transition-colors"
+            className="lg:hidden p-2 rounded-lg transition-colors"
             style={{
               backgroundColor: "transparent",
               color: "#838383",

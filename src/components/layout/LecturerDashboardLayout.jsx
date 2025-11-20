@@ -24,14 +24,14 @@ const DashboardOverview = () => {
   if (error) return <FullPageError message={error} />;
 
   return (
-    <div className="flex flex-col gap-15 p-4 md:p-0">
+    <div className=" w-full flex flex-col gap-15 p-4 md:p-0">
       <div className="flex flex-col gap-4 w-full">
         <div>
           <p className="text-text-grey text-xs">Dashboard</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-10 md:gap-20 w-full justify-between">
+        <div className="flex flex-col lg:flex-row gap-10 lg:gap-20 w-full lg:justify-between">
           <RealTimeDisplay />
-          <div className="flex flex-wrap items-center justify-between gap-10 w-full">
+          <div className="flex flex-wrap items-center justify-between gap-8 w-full">
             <OverViewDetailsCard stats={dashboardData} />
           </div>
         </div>
@@ -40,25 +40,6 @@ const DashboardOverview = () => {
     </div>
   );
 };
-
-// const AttendanceView = () => {
-//   const { AttendanceTable } = LecturerOverviewCards;
-//   const { classes, loading, error } = useLecturerClasses();
-
-//   if (loading) return <FullPageLoader text="Loading classes..." />;
-//   if (error) return <FullPageError message={error} />;
-
-//   return (
-//     <div className="flex flex-col gap-4 w-full">
-//       <div>
-//         <p className="text-text-grey text-xs">Attendance</p>
-//       </div>
-//       <div className="w-full">
-//         <AttendanceTable classes={classes} />
-//       </div>
-//     </div>
-//   );
-// };
 
 const AttendanceView = () => {
   const { AttendanceTable } = LecturerOverviewCards;

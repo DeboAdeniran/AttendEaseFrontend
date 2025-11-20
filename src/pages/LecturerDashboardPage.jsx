@@ -13,7 +13,7 @@ const LecturerDashboardPage = () => {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
-        <div className="hidden md:flex w-10" />
+        <div className="hidden lg:flex w-10" />
 
         <LecturerDashboardLayout
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}

@@ -12,8 +12,10 @@ import Attendance from "../../assets/attendance.svg?react";
 import Demarcation from "../../assets/demarcation.svg?react";
 import Analysis from "../../assets/analysis.svg?react";
 import { Link, useSearchParams, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const DashboardSidebar = ({ isOpen, onClose }) => {
+  const { logout } = useAuth();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const currentTab = searchParams.get("tab") || "overview";
@@ -66,10 +68,8 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
     },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.reload();
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
@@ -77,7 +77,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
@@ -88,7 +88,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
           bg-background-grey h-full flex items-center justify-between flex-col py-8 lg:py-4 gap-4 
           fixed  top-0 left-0 z-50 w-16
           transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
         <div className="w-full flex items-center flex-col gap-24">
@@ -106,7 +106,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
                       className="w-full flex justify-center items-center relative group "
                       onClick={() => {
                         // Close sidebar on mobile when link is clicked
-                        if (window.innerWidth < 768) {
+                        if (window.innerWidth < 1024) {
                           onClose();
                         }
                       }}
@@ -140,6 +140,12 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
                   className={`w-6 h-6 ${
                     isActive("profile") ? "text-blue" : "text-white"
                   }`}
+                  onClick={() => {
+                    // Close sidebar on mobile when link is clicked
+                    if (window.innerWidth < 1024) {
+                      onClose();
+                    }
+                  }}
                 />
                 <div className="absolute left-full ml-4 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                   Profile
