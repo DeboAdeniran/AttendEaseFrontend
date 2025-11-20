@@ -142,7 +142,6 @@ export const useLecturerCourses = () => {
 
   const fetchLecturerCourses = useCallback(async () => {
     if (!user?.id || !user.profile.id) {
-      console.log("USER ID", user.profile.id);
       setLoading(false);
       return;
     }

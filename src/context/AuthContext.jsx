@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || "Login failed. Please try again.";
+        err.response?.message || "Login failed. Please try again.";
       setError(errorMessage);
       return {
         success: false,
@@ -92,6 +92,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
 
       const response = await authAPI.register(userData);
+      console.log("Login response:", response.data);
       const { token, user: newUser } = response.data;
 
       // Store auth data
@@ -107,7 +108,7 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message ||
+        err.response?.message ||
         "Registration failed. Please check your details.";
       setError(errorMessage);
       return {
