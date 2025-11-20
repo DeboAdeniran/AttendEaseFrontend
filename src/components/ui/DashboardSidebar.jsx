@@ -66,6 +66,12 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
     },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.reload();
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -80,7 +86,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
       <div
         className={`
           bg-background-grey h-full flex items-center justify-between flex-col py-8 lg:py-4 gap-4 
-          fixed md:static z-50 w-16
+          fixed  top-0 left-0 z-50 w-16
           transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
@@ -90,14 +96,14 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
             <Notification className="w-6 h-6" />
           </div>
           <div className="w-full flex items-center flex-col gap-8">
-            <div className="w-full flex items-center flex-col gap-8">
+            <div className="w-full flex items-center flex-col gap-8 ">
               {navItems.map(
                 (item) =>
                   item.show && (
                     <Link
                       key={item.id}
                       to={`${dashboardPath}?tab=${item.id}`}
-                      className="w-full flex justify-center items-center relative group"
+                      className="w-full flex justify-center items-center relative group "
                       onClick={() => {
                         // Close sidebar on mobile when link is clicked
                         if (window.innerWidth < 768) {
@@ -110,7 +116,7 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
                       )}
                       <item.icon
                         className={`w-6 h-6 ${
-                          isActive(item.id) ? "text-blue" : "text-white"
+                          isActive(item.id) ? "text-blue" : "text-white/50"
                         }`}
                       />
                       {/* Tooltip */}
@@ -149,7 +155,10 @@ const DashboardSidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
         <div className="w-full flex items-center flex-col gap-8">
-          <button className="w-full flex justify-center items-center p-2 rounded-md hover:bg-gray-700 transition-colors group">
+          <button
+            onClick={handleLogout}
+            className="w-full flex justify-center items-center p-2 rounded-md hover:bg-gray-700 transition-colors group"
+          >
             <Logout className="w-6 h-6 text-white" />
             <div className="absolute left-full ml-4 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
               Logout

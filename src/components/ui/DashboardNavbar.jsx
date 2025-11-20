@@ -2,12 +2,16 @@ import React from "react";
 import { User, ChevronDown, Bell, Search } from "lucide-react";
 import Logo from "../../assets/dashLogo.svg?react";
 import Dashboard from "../../assets/Dashboard.svg?react";
-const DashboardNavbar = ({
-  userName = "Dr. Adesyo",
-  userEmail = "adeyoola@stock.edu.staff",
-  userAvatar,
-  onMenuToggle,
-}) => {
+import { useAuth } from "../../context/AuthContext";
+const DashboardNavbar = ({ userAvatar, onMenuToggle }) => {
+  const { user } = useAuth();
+
+  const firstName = user?.profile?.first_name || user?.first_name;
+  const lastName = user?.profile?.last_name || user?.last_name;
+
+  const userName = `${lastName} ${firstName}`;
+  const userEmail = user?.email || "";
+
   return (
     <nav
       className="border-b sticky top-0 z-30"
@@ -121,11 +125,11 @@ const DashboardNavbar = ({
             {/* User Info - Hidden on mobile */}
             <div className="hidden sm:block text-left">
               <p className="text-white text-sm">{userName}</p>
-              <p className="text-[#838383] text-xs">{userEmail}</p>
+              <p className="text-text-grey text-xs">{userEmail}</p>
             </div>
 
             {/* Dropdown Icon - Hidden on mobile */}
-            <ChevronDown className="hidden sm:block w-4 h-4 text-[#838383]" />
+            <ChevronDown className="hidden sm:block w-4 h-4 text-text-grey" />
           </button>
         </div>
       </div>
