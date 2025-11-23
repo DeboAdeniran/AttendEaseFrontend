@@ -22,6 +22,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
+import QRScannerModal from "./QRScannerModal";
 import { useAuth } from "../../context/AuthContext";
 import { classAPI, studentAPI } from "../../api";
 import { useEnrollClass } from "../../hooks";

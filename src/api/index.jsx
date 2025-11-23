@@ -153,4 +153,28 @@ export const attendanceAPI = {
   },
 };
 
+export const qrAPI = {
+  // Generate QR code for a class session (Lecturer)
+  generateQR: (data) => api.post("/qr/generate", data),
+
+  // Validate QR code before scanning (Student)
+  validateQR: (sessionToken) =>
+    api.post("/qr/validate", { session_token: sessionToken }),
+
+  // Scan QR code to mark attendance (Student)
+  scanQR: (sessionToken) =>
+    api.post("/qr/scan", { session_token: sessionToken }),
+
+  // Get active QR session for a class
+  getActiveSession: (classId, date) =>
+    api.get(`/qr/session/${classId}/${date}`),
+
+  // Deactivate QR session (Lecturer)
+  deactivateSession: (sessionId) =>
+    api.put(`/qr/session/${sessionId}/deactivate`),
+
+  // Get scan logs for a session (Lecturer)
+  getSessionLogs: (sessionId) => api.get(`/qr/session/${sessionId}/logs`),
+};
+
 export default api;

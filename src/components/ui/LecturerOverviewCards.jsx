@@ -5,7 +5,20 @@ import Positive from "../../assets/positive.svg?react";
 import Negative from "../../assets/Negative.svg?react";
 import { FullPageLoader } from "../common/LoadingSpinner";
 import { FullPageError } from "../common/ErrorMessage";
-import { ChevronDown, Search, Plus, X, Edit2, Archive } from "lucide-react";
+import QRGeneratorModal from "./QRGeneratorModal ";
+import {
+  ChevronDown,
+  Search,
+  Plus,
+  X,
+  Edit2,
+  Archive,
+  QrCode,
+  Clock,
+  Users,
+  CheckCircle,
+  Loader,
+} from "lucide-react";
 import { useCourseManagement } from "../../hooks";
 import { useLecturerCourses, useAllCourses } from "../../hooks/course";
 import { useClassManagement } from "../../hooks/class";
@@ -371,6 +384,7 @@ const DashboardAttendanceOverview = () => {
 };
 
 const AttendanceTable = ({ classes = [] }) => {
+  const [showQRModal, setShowQRModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -634,7 +648,14 @@ const AttendanceTable = ({ classes = [] }) => {
           >
             Mark All Present
           </button>
-
+          <button
+            onClick={() => setShowQRModal(true)}
+            disabled={!selectedClass}
+            className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md text-sm transition-colors disabled:opacity-50"
+          >
+            <QrCode size={18} className="inline mr-2" />
+            Generate QR
+          </button>
           <button
             onClick={handleSubmit}
             disabled={!hasUnsavedChanges || isSubmitting || !selectedClass}
@@ -711,7 +732,14 @@ const AttendanceTable = ({ classes = [] }) => {
             >
               Mark All Present
             </button>
-
+            <button
+              onClick={() => setShowQRModal(true)}
+              disabled={!selectedClass}
+              className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md text-sm transition-colors disabled:opacity-50"
+            >
+              <QrCode size={18} className="inline mr-2" />
+              Generate QR
+            </button>
             <button
               onClick={handleSubmit}
               disabled={!hasUnsavedChanges || isSubmitting || !selectedClass}
@@ -914,6 +942,12 @@ const AttendanceTable = ({ classes = [] }) => {
             There are no students enrolled in this class yet.
           </p>
         </div>
+      )}
+      {showQRModal && selectedClass && (
+        <QRGeneratorModal
+          classData={selectedClass}
+          onClose={() => setShowQRModal(false)}
+        />
       )}
     </div>
   );
