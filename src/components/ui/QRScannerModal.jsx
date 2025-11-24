@@ -22,11 +22,14 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
   const [scanningStatus, setScanningStatus] = useState("idle");
   const [cameraError, setCameraError] = useState(null);
   const [videoReady, setVideoReady] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("");
+  const [isFrontCamera, setIsFrontCamera] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const scanIntervalRef = useRef(null);
+  const animationFrameRef = useRef(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -41,6 +44,7 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
       setError(null);
       setCameraError(null);
       setVideoReady(false);
+      setDebugInfo("Starting camera...");
 
       // Stop any existing stream first
       if (streamRef.current) {
@@ -49,7 +53,7 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "environment",
+          facingMode: isFrontCamera ? "user" : "environment",
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -63,12 +67,15 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
         // Wait for video to be ready
         const onVideoReady = () => {
           console.log("Video is ready to play");
+          setDebugInfo(
+            `Video ready: ${videoRef.current.videoWidth}x${videoRef.current.videoHeight}`
+          );
           setVideoReady(true);
           setCameraActive(true);
           setScanningStatus("scanning");
 
-          // Start scanning for QR codes
-          scanIntervalRef.current = setInterval(scanForQRCode, 300);
+          // Start scanning for QR codes using requestAnimationFrame for better performance
+          startQRScanning();
         };
 
         videoRef.current.onloadedmetadata = onVideoReady;
@@ -76,6 +83,7 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
 
         videoRef.current.onerror = (err) => {
           console.error("Video error:", err);
+          setDebugInfo("Video error occurred");
           setCameraError("Failed to start camera preview");
           setScanningStatus("idle");
         };
@@ -90,6 +98,7 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
       setCameraError(errorMsg);
       setScanningStatus("idle");
       setCameraActive(false);
+      setDebugInfo(`Camera error: ${err.message}`);
     }
   };
 
@@ -114,6 +123,12 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
       scanIntervalRef.current = null;
     }
 
+    // Cancel animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
     // Stop the video stream
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
@@ -134,6 +149,30 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
     setVideoReady(false);
     setScanningStatus("idle");
     setCameraError(null);
+    setDebugInfo("Camera stopped");
+  };
+
+  const toggleCamera = async () => {
+    setIsFrontCamera(!isFrontCamera);
+    if (cameraActive) {
+      await stopCamera();
+      setTimeout(startCamera, 100);
+    }
+  };
+
+  const startQRScanning = () => {
+    const scanFrame = () => {
+      if (
+        scanningStatus === "scanning" &&
+        videoRef.current &&
+        canvasRef.current
+      ) {
+        scanForQRCode();
+        animationFrameRef.current = requestAnimationFrame(scanFrame);
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(scanFrame);
   };
 
   const scanForQRCode = () => {
@@ -150,7 +189,14 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
     const context = canvas.getContext("2d");
 
     // Check if video is ready and has data
-    if (video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0) {
+    if (
+      video.readyState !== video.HAVE_ENOUGH_DATA ||
+      video.videoWidth === 0 ||
+      video.videoHeight === 0
+    ) {
+      setDebugInfo(
+        `Video not ready: ${video.readyState}, ${video.videoWidth}x${video.videoHeight}`
+      );
       return;
     }
 
@@ -172,52 +218,91 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
 
       if (code) {
         console.log("QR Code detected:", code.data);
+        setDebugInfo(`QR Code found: ${code.data.substring(0, 50)}...`);
         handleQRCodeDetected(code.data);
+      } else {
+        // Update debug info occasionally to show scanning is working
+        if (Math.random() < 0.1) {
+          // Only update 10% of the time to avoid spam
+          setDebugInfo(`Scanning... ${video.videoWidth}x${video.videoHeight}`);
+        }
       }
     } catch (err) {
       console.error("QR scanning error:", err);
+      setDebugInfo(`Scan error: ${err.message}`);
     }
   };
 
   const handleQRCodeDetected = async (qrData) => {
     // Stop scanning while processing
     setScanningStatus("processing");
+    setDebugInfo("Processing QR code...");
     stopCamera();
 
     try {
       // Parse QR code data
-      const parsedData = JSON.parse(qrData);
+      let parsedData;
+      try {
+        parsedData = JSON.parse(qrData);
+        console.log("Parsed QR data:", parsedData);
+      } catch (parseError) {
+        console.error("QR parse error:", parseError);
+        setError(
+          "Invalid QR code format. Please try again or use manual entry."
+        );
+        setScanningStatus("idle");
+        setDebugInfo("QR code is not valid JSON");
+        return;
+      }
 
-      if (parsedData.type !== "attendance") {
+      // Validate QR code structure
+      if (!parsedData.type || parsedData.type !== "attendance") {
         setError("Invalid QR code. This is not an attendance QR code.");
         setScanningStatus("idle");
+        setDebugInfo(`Invalid QR type: ${parsedData.type}`);
+        return;
+      }
+
+      if (!parsedData.sessionToken) {
+        setError("Invalid QR code. Missing session token.");
+        setScanningStatus("idle");
+        setDebugInfo("Missing sessionToken in QR data");
         return;
       }
 
       // Mark attendance using the session token
       await markAttendanceWithToken(parsedData.sessionToken);
     } catch (err) {
-      console.error("QR parse error:", err);
-      setError("Invalid QR code format. Please try again or use manual entry.");
+      console.error("QR processing error:", err);
+      setError(
+        "Failed to process QR code. Please try again or use manual entry."
+      );
       setScanningStatus("idle");
+      setDebugInfo(`Processing error: ${err.message}`);
     }
   };
 
   const markAttendanceWithToken = async (sessionToken) => {
     setError(null);
+    setDebugInfo(`Validating token: ${sessionToken.substring(0, 20)}...`);
 
     try {
       // First validate
       const validateResult = await validateQR(sessionToken);
+      console.log("Validation result:", validateResult);
 
       if (!validateResult.success) {
-        setError(validateResult.error);
+        setError(validateResult.error || "Validation failed");
         setScanningStatus("idle");
+        setDebugInfo(`Validation failed: ${validateResult.error}`);
         return;
       }
 
+      setDebugInfo("Validation successful, marking attendance...");
+
       // Then scan
       const scanResult = await scanQR(sessionToken);
+      console.log("Scan result:", scanResult);
 
       if (scanResult.success) {
         setResult({
@@ -225,17 +310,21 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
           data: scanResult.data,
           courseInfo: validateResult.data,
         });
+        setDebugInfo("Attendance marked successfully!");
 
         if (onSuccess) {
           setTimeout(() => onSuccess(scanResult.data), 2000);
         }
       } else {
-        setError(scanResult.error);
+        setError(scanResult.error || "Failed to mark attendance");
         setScanningStatus("idle");
+        setDebugInfo(`Scan failed: ${scanResult.error}`);
       }
     } catch (err) {
-      setError("An error occurred while marking attendance", err);
+      console.error("Attendance marking error:", err);
+      setError("An error occurred while marking attendance");
       setScanningStatus("idle");
+      setDebugInfo(`API error: ${err.message}`);
     }
   };
 
@@ -259,6 +348,17 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
     setScanMethod(method);
     setError(null);
     setCameraError(null);
+    setDebugInfo(`Switched to ${method} mode`);
+  };
+
+  // Test with a sample QR code (for debugging)
+  const testWithSampleQR = () => {
+    const sampleQRData = JSON.stringify({
+      type: "attendance",
+      sessionToken: "test-session-123",
+      timestamp: Date.now(),
+    });
+    handleQRCodeDetected(sampleQRData);
   };
 
   // Render camera status based on current state
@@ -320,6 +420,19 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
         </div>
 
         <div className="p-6">
+          {/* Debug Info - Remove in production */}
+          {process.env.NODE_ENV === "development" && (
+            <div className="mb-4 p-2 bg-yellow-500/20 border border-yellow-500 rounded text-xs text-yellow-400">
+              <strong>Debug:</strong> {debugInfo}
+              <button
+                onClick={testWithSampleQR}
+                className="ml-2 px-2 py-1 bg-yellow-600 rounded text-white text-xs"
+              >
+                Test QR
+              </button>
+            </div>
+          )}
+
           {!result ? (
             <>
               {/* Method Toggle */}
@@ -404,7 +517,7 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
                 <div className="space-y-4">
                   {/* Camera Preview */}
                   <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                    {/* Video Element - Always render but conditionally show */}
+                    {/* Video Element - No mirroring for back camera */}
                     <video
                       ref={videoRef}
                       className={`w-full h-full object-cover ${
@@ -412,9 +525,7 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
                       }`}
                       playsInline
                       muted
-                      style={{
-                        transform: "scaleX(-1)", // Mirror the video for more natural experience
-                      }}
+                      // Removed the mirror transform for back camera
                     />
 
                     {/* Status Overlay */}
@@ -457,6 +568,13 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
                             )}
                           </p>
                         </div>
+
+                        {/* Camera Type Indicator */}
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 px-3 py-1 rounded-full">
+                          <p className="text-white text-xs">
+                            {isFrontCamera ? "Front Camera" : "Back Camera"}
+                          </p>
+                        </div>
                       </>
                     )}
 
@@ -489,13 +607,22 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
                           : "Start Camera"}
                       </button>
                     ) : (
-                      <button
-                        onClick={stopCamera}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-                      >
-                        <StopCircle className="w-5 h-5" />
-                        Stop Camera
-                      </button>
+                      <>
+                        <button
+                          onClick={stopCamera}
+                          className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          <StopCircle className="w-5 h-5" />
+                          Stop Camera
+                        </button>
+                        <button
+                          onClick={toggleCamera}
+                          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Camera className="w-5 h-5" />
+                          Switch Camera
+                        </button>
+                      </>
                     )}
 
                     {/* Retry button if there was an error */}
@@ -518,8 +645,8 @@ const QRScannerModal = ({ onClose, onSuccess }) => {
                       <br />• Make sure the QR code is well-lit and in focus
                       <br />• The camera will automatically detect and scan the
                       code
-                      <br />• If scanning fails, try manual entry or ask your
-                      lecturer for help
+                      <br />• If scanning fails, try switching cameras or use
+                      manual entry
                     </p>
                   </div>
                 </div>
